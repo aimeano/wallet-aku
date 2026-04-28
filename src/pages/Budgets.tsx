@@ -19,6 +19,7 @@ const Budgets = () => {
   const { data: categories = [], isLoading: cl } = useCategories();
   const { data: transactions = [] } = useTransactions();
   const qc = useQueryClient();
+  const { format: formatCurrency } = useCurrency();
 
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);

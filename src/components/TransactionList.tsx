@@ -11,6 +11,7 @@ interface Props {
 }
 
 export const TransactionList = ({ transactions, categories, empty }: Props) => {
+  const { format: formatCurrency } = useCurrency();
   const catMap = new Map(categories.map((c) => [c.id, c]));
 
   if (transactions.length === 0) {

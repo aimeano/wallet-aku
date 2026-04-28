@@ -16,6 +16,7 @@ const Dashboard = () => {
   const { user, loading } = useAuth();
   const { data: categories = [], isLoading: cl } = useCategories();
   const { data: transactions = [], isLoading: tl } = useTransactions();
+  const { format: formatCurrency } = useCurrency();
 
   const [sheet, setSheet] = useState<"income" | "expense" | null>(null);
 
