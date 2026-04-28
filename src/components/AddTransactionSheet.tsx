@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const SOURCES = ["Salary", "Allowance", "Transfer", "Gift", "Bonus", "Other"];
 
@@ -29,6 +30,7 @@ interface Props {
 
 export const AddTransactionSheet = ({ open, onOpenChange, type }: Props) => {
   const { user } = useAuth();
+  const { currency } = useCurrency();
   const { data: categories = [] } = useCategories();
   const qc = useQueryClient();
 
@@ -92,12 +94,12 @@ export const AddTransactionSheet = ({ open, onOpenChange, type }: Props) => {
           <div>
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Amount</Label>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className={`text-3xl font-bold ${type === "income" ? "text-income" : "text-expense"}`}>$</span>
+              <span className={`text-3xl font-bold ${type === "income" ? "text-income" : "text-expense"}`}>{currency.symbol}</span>
               <Input
                 type="number"
                 inputMode="decimal"
-                step="0.01"
-                placeholder="0.00"
+                step={currency.decimals === 0 ? "1" : "0.01"}
+                placeholder={currency.decimals === 0 ? "0" : "0.00"}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 autoFocus

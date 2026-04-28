@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Home, History, PieChart, LogOut } from "lucide-react";
+import { Home, History, PieChart, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const items = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/history", icon: History, label: "History" },
   { to: "/budgets", icon: PieChart, label: "Budgets" },
+  { to: "/settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 export const BottomNav = () => {
