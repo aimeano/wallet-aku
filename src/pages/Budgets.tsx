@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCategories, useTransactions, Category } from "@/hooks/useWalletData";
@@ -106,15 +106,15 @@ const CategoryDialog = ({ open, onOpenChange, category, onSaved }: DialogProps) 
   const [color, setColor] = useState(category?.color ?? COLOR_OPTIONS[0]);
   const [saving, setSaving] = useState(false);
 
-  // Sync when opening for a different category
   const key = category?.id ?? "new";
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useState(() => {
-    setName(category?.name ?? "");
-    setLimit(category?.monthly_limit?.toString() ?? "");
-    setIcon(category?.icon ?? "Tag");
-    setColor(category?.color ?? COLOR_OPTIONS[0]);
-  });
+  useEffect(() => {
+    if (open) {
+      setName(category?.name ?? "");
+      setLimit(category?.monthly_limit?.toString() ?? "");
+      setIcon(category?.icon ?? "Tag");
+      setColor(category?.color ?? COLOR_OPTIONS[0]);
+    }
+  }, [open, category]);
 
   const handleSave = async () => {
     if (!user) return;
