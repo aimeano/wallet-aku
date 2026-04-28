@@ -1,6 +1,6 @@
 import { Category, Transaction } from "@/hooks/useWalletData";
 import { CategoryIcon } from "./CategoryIcon";
-import { formatCurrency } from "@/lib/format";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Props {
   categories: Category[];

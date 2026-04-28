@@ -10,7 +10,7 @@ import { AddTransactionSheet } from "@/components/AddTransactionSheet";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, TrendingUp, Loader2 } from "lucide-react";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { formatCurrency } from "@/lib/format";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();

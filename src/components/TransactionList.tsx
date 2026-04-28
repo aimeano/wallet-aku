@@ -1,7 +1,8 @@
 import { Transaction, Category } from "@/hooks/useWalletData";
 import { CategoryIcon } from "./CategoryIcon";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { formatCurrency, friendlyDate } from "@/lib/format";
+import { friendlyDate } from "@/lib/format";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Props {
   transactions: Transaction[];
