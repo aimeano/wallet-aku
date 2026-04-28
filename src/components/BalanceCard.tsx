@@ -1,5 +1,5 @@
 import { Wallet } from "lucide-react";
-import { formatCurrency } from "@/lib/format";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Props {
   balance: number;
@@ -8,6 +8,7 @@ interface Props {
 }
 
 export const BalanceCard = ({ balance, income, expenses }: Props) => {
+  const { format: formatCurrency } = useCurrency();
   return (
     <div className="relative overflow-hidden rounded-[var(--radius)] bg-gradient-balance p-6 shadow-glow animate-pop">
       <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />

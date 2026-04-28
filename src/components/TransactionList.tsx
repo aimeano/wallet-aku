@@ -1,7 +1,8 @@
 import { Transaction, Category } from "@/hooks/useWalletData";
 import { CategoryIcon } from "./CategoryIcon";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { formatCurrency, friendlyDate } from "@/lib/format";
+import { friendlyDate } from "@/lib/format";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Props {
   transactions: Transaction[];
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export const TransactionList = ({ transactions, categories, empty }: Props) => {
+  const { format: formatCurrency } = useCurrency();
   const catMap = new Map(categories.map((c) => [c.id, c]));
 
   if (transactions.length === 0) {

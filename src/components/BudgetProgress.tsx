@@ -1,6 +1,6 @@
 import { Category, Transaction } from "@/hooks/useWalletData";
 import { CategoryIcon } from "./CategoryIcon";
-import { formatCurrency } from "@/lib/format";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Props {
   categories: Category[];
@@ -8,6 +8,7 @@ interface Props {
 }
 
 export const BudgetProgress = ({ categories, transactions }: Props) => {
+  const { format: formatCurrency } = useCurrency();
   const budgeted = categories.filter((c) => c.monthly_limit && c.monthly_limit > 0);
 
   if (budgeted.length === 0) {
