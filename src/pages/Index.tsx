@@ -116,11 +116,18 @@ const Dashboard = () => {
         <TransactionList
           transactions={transactions.slice(0, 8)}
           categories={categories}
+          onSelect={setEditing}
           empty={<p className="text-sm text-muted-foreground">Nothing yet — add your first transaction above.</p>}
         />
       </section>
 
       <AddTransactionSheet open={sheet !== null} onOpenChange={(v) => !v && setSheet(null)} type={sheet ?? "expense"} />
+      <AddTransactionSheet
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+        type={editing?.type ?? "expense"}
+        transaction={editing}
+      />
     </AppShell>
   );
 };
