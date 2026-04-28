@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCategories, useTransactions } from "@/hooks/useWalletData";
+import { useCategories, useTransactions, Transaction } from "@/hooks/useWalletData";
 import { AppShell } from "@/components/AppShell";
 import { TransactionList } from "@/components/TransactionList";
+import { AddTransactionSheet } from "@/components/AddTransactionSheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -15,6 +16,7 @@ const History = () => {
   const [type, setType] = useState<"all" | "income" | "expense">("all");
   const [catId, setCatId] = useState<string>("all");
   const [range, setRange] = useState<"all" | "30" | "7" | "month">("all");
+  const [editing, setEditing] = useState<Transaction | null>(null);
 
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
@@ -76,7 +78,15 @@ const History = () => {
       </div>
 
       <p className="mb-3 text-xs text-muted-foreground">{filtered.length} transactions</p>
-      <TransactionList transactions={filtered} categories={categories} />
+      <p className="mb-3 text-xs text-muted-foreground">{filtered.length} transactions · tap to edit</p>
+      <TransactionList transactions={filtered} categories={categories} onSelect={setEditing} />
+
+      <AddTransactionSheet
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+        type={editing?.type ?? "expense"}
+        transaction={editing}
+      />
     </AppShell>
   );
 };

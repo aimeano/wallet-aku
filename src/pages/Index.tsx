@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCategories, useTransactions } from "@/hooks/useWalletData";
+import { useCategories, useTransactions, Transaction } from "@/hooks/useWalletData";
 import { AppShell } from "@/components/AppShell";
 import { BalanceCard } from "@/components/BalanceCard";
 import { TransactionList } from "@/components/TransactionList";
@@ -19,6 +19,7 @@ const Dashboard = () => {
   const { format: formatCurrency } = useCurrency();
 
   const [sheet, setSheet] = useState<"income" | "expense" | null>(null);
+  const [editing, setEditing] = useState<Transaction | null>(null);
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -115,11 +116,18 @@ const Dashboard = () => {
         <TransactionList
           transactions={transactions.slice(0, 8)}
           categories={categories}
+          onSelect={setEditing}
           empty={<p className="text-sm text-muted-foreground">Nothing yet — add your first transaction above.</p>}
         />
       </section>
 
       <AddTransactionSheet open={sheet !== null} onOpenChange={(v) => !v && setSheet(null)} type={sheet ?? "expense"} />
+      <AddTransactionSheet
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+        type={editing?.type ?? "expense"}
+        transaction={editing}
+      />
     </AppShell>
   );
 };
