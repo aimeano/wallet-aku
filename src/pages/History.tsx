@@ -8,6 +8,7 @@ import { AddTransactionSheet } from "@/components/AddTransactionSheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useCycle } from "@/contexts/CycleContext";
 
 const History = () => {
   const { user, loading } = useAuth();
@@ -15,7 +16,8 @@ const History = () => {
   const { data: transactions = [], isLoading } = useTransactions();
   const [type, setType] = useState<"all" | "income" | "expense">("all");
   const [catId, setCatId] = useState<string>("all");
-  const [range, setRange] = useState<"all" | "30" | "7" | "month">("all");
+  const [range, setRange] = useState<"all" | "30" | "7" | "month" | "cycle">("all");
+  const { isInCurrentCycle } = useCycle();
   const [editing, setEditing] = useState<Transaction | null>(null);
 
   const filtered = useMemo(() => {
@@ -23,19 +25,23 @@ const History = () => {
       if (type !== "all" && t.type !== type) return false;
       if (catId !== "all" && t.category_id !== catId) return false;
       if (range !== "all") {
-        const d = new Date(t.date + "T00:00:00");
-        const today = new Date();
-        if (range === "month") {
-          if (d.getMonth() !== today.getMonth() || d.getFullYear() !== today.getFullYear()) return false;
+        if (range === "cycle") {
+          if (!isInCurrentCycle(t.date)) return false;
         } else {
-          const days = parseInt(range);
-          const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-          if (d < cutoff) return false;
+          const d = new Date(t.date + "T00:00:00");
+          const today = new Date();
+          if (range === "month") {
+            if (d.getMonth() !== today.getMonth() || d.getFullYear() !== today.getFullYear()) return false;
+          } else {
+            const days = parseInt(range);
+            const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
+            if (d < cutoff) return false;
+          }
         }
       }
       return true;
     });
-  }, [transactions, type, catId, range]);
+  }, [transactions, type, catId, range, isInCurrentCycle]);
 
   if (loading || isLoading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   if (!user) return <Navigate to="/auth" replace />;
@@ -70,6 +76,7 @@ const History = () => {
           <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All time</SelectItem>
+            <SelectItem value="cycle">This cycle</SelectItem>
             <SelectItem value="month">This month</SelectItem>
             <SelectItem value="30">Last 30 days</SelectItem>
             <SelectItem value="7">Last 7 days</SelectItem>

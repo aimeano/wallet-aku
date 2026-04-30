@@ -1,6 +1,7 @@
 import { Category, Transaction } from "@/hooks/useWalletData";
 import { CategoryIcon } from "./CategoryIcon";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useCycle } from "@/contexts/CycleContext";
 
 interface Props {
   categories: Category[];
@@ -9,6 +10,7 @@ interface Props {
 
 export const BudgetProgress = ({ categories, transactions }: Props) => {
   const { format: formatCurrency } = useCurrency();
+  const { isInCurrentCycle } = useCycle();
   const budgeted = categories.filter((c) => c.monthly_limit && c.monthly_limit > 0);
 
   if (budgeted.length === 0) {
@@ -24,6 +26,7 @@ export const BudgetProgress = ({ categories, transactions }: Props) => {
   const spentByCat = new Map<string, number>();
   for (const t of transactions) {
     if (t.type !== "expense" || !t.category_id) continue;
+    if (!isInCurrentCycle(t.date)) continue;
     spentByCat.set(t.category_id, (spentByCat.get(t.category_id) || 0) + t.amount);
   }
 
