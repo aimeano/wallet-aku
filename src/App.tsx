@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { CycleProvider } from "@/contexts/CycleContext";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import History from "./pages/History.tsx";
@@ -20,6 +21,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CurrencyProvider>
+            <CycleProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -28,6 +30,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </CycleProvider>
           </CurrencyProvider>
         </AuthProvider>
       </BrowserRouter>
