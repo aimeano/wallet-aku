@@ -66,6 +66,9 @@ const Dashboard = () => {
           <p className="text-xs text-muted-foreground">{greeting}</p>
           <h1 className="text-lg font-semibold">{user.email?.split("@")[0]}</h1>
         </div>
+        <div className="rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
+          Cycle: {formatRange()}
+        </div>
       </header>
 
       <BalanceCard balance={stats.balance} income={stats.income} expenses={stats.expenses} />
@@ -96,7 +99,7 @@ const Dashboard = () => {
             </div>
             <div className="flex-1">
               <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> Top spending this month
+                <TrendingUp className="h-3 w-3" /> Top spending this cycle
               </p>
               <p className="text-sm font-semibold">{stats.topCat.name}</p>
             </div>
