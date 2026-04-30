@@ -2,12 +2,20 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/AppShell";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/contexts/CurrencyContext";
+import { useCycle } from "@/contexts/CycleContext";
 import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+const PRESETS = [
+  { day: 1, label: "1st of month" },
+  { day: 15, label: "15th (mid-month)" },
+  { day: 25, label: "25th (payday)" },
+];
 
 const Settings = () => {
   const { user, loading } = useAuth();
   const { currency, setCurrency } = useCurrency();
+  const { resetDay, setResetDay, formatRange } = useCycle();
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   if (!user) return <Navigate to="/auth" replace />;
