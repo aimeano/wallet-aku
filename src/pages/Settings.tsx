@@ -66,6 +66,50 @@ const Settings = () => {
           Note: Changing currency only updates the symbol. Amounts are not converted.
         </p>
       </section>
+
+      <section className="mt-8">
+        <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reset cycle day</h2>
+        <p className="mb-3 text-xs text-muted-foreground">Current cycle: {formatRange()}</p>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          {PRESETS.map((p) => {
+            const active = resetDay === p.day;
+            return (
+              <button
+                key={p.day}
+                onClick={() => { setResetDay(p.day); toast.success(`Reset day set to ${p.day}`); }}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-smooth ${
+                  active ? "border-primary bg-primary/15 text-primary" : "border-border/60 bg-card/50 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="rounded-2xl border border-border/60 bg-gradient-card p-4 shadow-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Custom day</p>
+              <p className="text-xs text-muted-foreground">Choose any day from 1 to 28</p>
+            </div>
+            <p className="text-2xl font-bold tabular-nums">{resetDay}</p>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={28}
+            value={resetDay}
+            onChange={(e) => setResetDay(parseInt(e.target.value, 10))}
+            className="mt-3 w-full accent-primary"
+          />
+        </div>
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          Cycle resets on day {resetDay} each month. Months with fewer days are capped at 28 to stay consistent.
+        </p>
+      </section>
     </AppShell>
   );
 };
