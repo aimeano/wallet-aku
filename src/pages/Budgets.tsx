@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useCycle } from "@/contexts/CycleContext";
 
 const Budgets = () => {
   const { user, loading } = useAuth();
@@ -20,6 +21,7 @@ const Budgets = () => {
   const { data: transactions = [] } = useTransactions();
   const qc = useQueryClient();
   const { format: formatCurrency } = useCurrency();
+  const { isInCurrentCycle, formatRange } = useCycle();
 
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
@@ -27,16 +29,10 @@ const Budgets = () => {
   if (loading || cl) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   if (!user) return <Navigate to="/auth" replace />;
 
-  const monthSpent = (id: string) => {
-    const now = new Date();
-    return transactions
-      .filter((t) => t.type === "expense" && t.category_id === id)
-      .filter((t) => {
-        const d = new Date(t.date + "T00:00:00");
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      })
+  const cycleSpent = (id: string) =>
+    transactions
+      .filter((t) => t.type === "expense" && t.category_id === id && isInCurrentCycle(t.date))
       .reduce((s, t) => s + t.amount, 0);
-  };
 
   return (
     <AppShell>
@@ -47,11 +43,11 @@ const Budgets = () => {
         </Button>
       </div>
 
-      <p className="mb-4 text-sm text-muted-foreground">Set monthly limits to keep your spending in check.</p>
+      <p className="mb-4 text-sm text-muted-foreground">Cycle: {formatRange()} — set limits to keep your spending in check.</p>
 
       <div className="space-y-2">
         {categories.map((c) => {
-          const spent = monthSpent(c.id);
+          const spent = cycleSpent(c.id);
           const limit = c.monthly_limit ?? 0;
           return (
             <button
