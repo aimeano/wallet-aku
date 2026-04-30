@@ -11,26 +11,25 @@ import { Button } from "@/components/ui/button";
 import { Plus, Minus, TrendingUp, Loader2 } from "lucide-react";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useCycle } from "@/contexts/CycleContext";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const { data: categories = [], isLoading: cl } = useCategories();
   const { data: transactions = [], isLoading: tl } = useTransactions();
   const { format: formatCurrency } = useCurrency();
+  const { isInCurrentCycle, formatRange } = useCycle();
 
   const [sheet, setSheet] = useState<"income" | "expense" | null>(null);
   const [editing, setEditing] = useState<Transaction | null>(null);
 
   const stats = useMemo(() => {
-    const now = new Date();
-    const m = now.getMonth(), y = now.getFullYear();
     let income = 0, expenses = 0, totalIncome = 0, totalExpenses = 0;
     const byCat = new Map<string, number>();
     for (const t of transactions) {
       if (t.type === "income") totalIncome += t.amount;
       else totalExpenses += t.amount;
-      const d = new Date(t.date + "T00:00:00");
-      if (d.getMonth() === m && d.getFullYear() === y) {
+      if (isInCurrentCycle(t.date)) {
         if (t.type === "income") income += t.amount;
         else {
           expenses += t.amount;
@@ -42,7 +41,7 @@ const Dashboard = () => {
     byCat.forEach((amt, id) => { if (amt > topAmt) { topAmt = amt; topCatId = id; } });
     const topCat = topCatId ? categories.find((c) => c.id === topCatId) : null;
     return { balance: totalIncome - totalExpenses, income, expenses, topCat, topAmt };
-  }, [transactions, categories]);
+  }, [transactions, categories, isInCurrentCycle]);
 
   if (loading || cl || tl) {
     return (
