@@ -44,6 +44,65 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_transactions: {
+        Row: {
+          active: boolean
+          amount: number
+          category_id: string | null
+          created_at: string
+          frequency: string
+          id: string
+          interval_days: number | null
+          name: string
+          next_date: string
+          note: string | null
+          source: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          frequency: string
+          id?: string
+          interval_days?: number | null
+          name: string
+          next_date: string
+          note?: string | null
+          source?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          interval_days?: number | null
+          name?: string
+          next_date?: string
+          note?: string | null
+          source?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
