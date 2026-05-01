@@ -3,15 +3,17 @@ import { CategoryIcon } from "./CategoryIcon";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { friendlyDate } from "@/lib/format";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { SwipeableRow } from "./SwipeableRow";
 
 interface Props {
   transactions: Transaction[];
   categories: Category[];
   empty?: React.ReactNode;
   onSelect?: (t: Transaction) => void;
+  onDelete?: (t: Transaction) => void;
 }
 
-export const TransactionList = ({ transactions, categories, empty, onSelect }: Props) => {
+export const TransactionList = ({ transactions, categories, empty, onSelect, onDelete }: Props) => {
   const { format: formatCurrency } = useCurrency();
   const catMap = new Map(categories.map((c) => [c.id, c]));
 
@@ -32,24 +34,19 @@ export const TransactionList = ({ transactions, categories, empty, onSelect }: P
         const iconName = isIncome ? "ArrowDownLeft" : (cat?.icon || "Tag");
         const tint = isIncome ? "hsl(var(--income))" : (cat?.color || "hsl(var(--muted-foreground))");
 
-        return (
-          <li
-            key={t.id}
-            className="animate-fade-in"
-            style={{ animationDelay: `${i * 30}ms` }}
+        const row = (
+          <button
+            type="button"
+            onClick={() => onSelect?.(t)}
+            disabled={!onSelect}
+            className="group flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-gradient-card p-3 text-left shadow-card transition-smooth enabled:hover:border-border enabled:active:scale-[0.99] disabled:cursor-default"
           >
-            <button
-              type="button"
-              onClick={() => onSelect?.(t)}
-              disabled={!onSelect}
-              className="group flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-gradient-card p-3 text-left shadow-card transition-smooth enabled:hover:border-border enabled:hover:translate-y-[-1px] enabled:active:scale-[0.99] disabled:cursor-default"
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `color-mix(in hsl, ${tint} 18%, transparent)`, color: tint }}
             >
-              <div
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: `color-mix(in hsl, ${tint} 18%, transparent)`, color: tint }}
-              >
-                <CategoryIcon name={iconName} className="h-5 w-5" />
-              </div>
+              <CategoryIcon name={iconName} className="h-5 w-5" />
+            </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-foreground">{label}</p>
               <p className="truncate text-xs text-muted-foreground">
@@ -62,11 +59,29 @@ export const TransactionList = ({ transactions, categories, empty, onSelect }: P
               ) : (
                 <ArrowUpRight className="h-3.5 w-3.5 text-expense" />
               )}
-                <span className={`text-sm font-bold tabular-nums ${isIncome ? "text-income" : "text-expense"}`}>
-                  {isIncome ? "+" : "-"}{formatCurrency(t.amount).replace("-", "")}
-                </span>
-              </div>
-            </button>
+              <span className={`text-sm font-bold tabular-nums ${isIncome ? "text-income" : "text-expense"}`}>
+                {isIncome ? "+" : "-"}{formatCurrency(t.amount).replace("-", "")}
+              </span>
+            </div>
+          </button>
+        );
+
+        const swipeable = onSelect || onDelete;
+
+        return (
+          <li
+            key={t.id}
+            className="animate-fade-in"
+            style={{ animationDelay: `${i * 30}ms` }}
+          >
+            {swipeable ? (
+              <SwipeableRow
+                onSwipeRight={onSelect ? () => onSelect(t) : undefined}
+                onSwipeLeft={onDelete ? () => onDelete(t) : undefined}
+              >
+                {row}
+              </SwipeableRow>
+            ) : row}
           </li>
         );
       })}
