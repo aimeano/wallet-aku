@@ -122,6 +122,7 @@ export const SwipeableRow = ({ children, onSwipeLeft, onSwipeRight, threshold = 
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={reset}
+        onClickCapture={onClickCapture}
         style={{
           transform: `translate3d(${dx}px,0,0)`,
           transition: dragging ? "none" : "transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)",
