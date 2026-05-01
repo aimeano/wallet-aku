@@ -110,6 +110,23 @@ const Settings = () => {
           Cycle resets on day {resetDay} each month. Months with fewer days are capped at 28 to stay consistent.
         </p>
       </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Automation</h2>
+        <Link
+          to="/recurring"
+          className="flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-gradient-card p-4 text-left shadow-card transition-smooth hover:border-border hover:translate-y-[-1px]"
+        >
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
+            <Repeat className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold">Recurring transactions</p>
+            <p className="text-xs text-muted-foreground">Manage scheduled income & expenses</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </Link>
+      </section>
     </AppShell>
   );
 };
