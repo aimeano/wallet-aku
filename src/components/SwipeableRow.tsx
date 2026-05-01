@@ -20,6 +20,7 @@ export const SwipeableRow = ({ children, onSwipeLeft, onSwipeRight, threshold = 
   const startX = useRef(0);
   const startY = useRef(0);
   const locked = useRef<"h" | "v" | null>(null);
+  const swiped = useRef(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const reset = () => { setDx(0); setDragging(false); locked.current = null; };
@@ -29,6 +30,7 @@ export const SwipeableRow = ({ children, onSwipeLeft, onSwipeRight, threshold = 
     startX.current = e.clientX;
     startY.current = e.clientY;
     locked.current = null;
+    swiped.current = false;
     setDragging(true);
   };
 
@@ -56,9 +58,19 @@ export const SwipeableRow = ({ children, onSwipeLeft, onSwipeRight, threshold = 
 
   const onPointerUp = () => {
     if (!dragging) return;
-    if (dx <= -threshold && onSwipeLeft) onSwipeLeft();
-    else if (dx >= threshold && onSwipeRight) onSwipeRight();
+    if (dx <= -threshold && onSwipeLeft) { swiped.current = true; onSwipeLeft(); }
+    else if (dx >= threshold && onSwipeRight) { swiped.current = true; onSwipeRight(); }
+    else if (locked.current === "h" && Math.abs(dx) > 8) swiped.current = true;
     reset();
+  };
+
+  // Suppress the click that follows a horizontal drag so inner buttons don't double-fire.
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (swiped.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      swiped.current = false;
+    }
   };
 
   const showDelete = dx < 0 && onSwipeLeft;
