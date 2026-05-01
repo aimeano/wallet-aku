@@ -4,14 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCategories, Transaction } from "@/hooks/useWalletData";
+import { Switch } from "@/components/ui/switch";
+import { useCategories, Transaction, Frequency } from "@/hooks/useWalletData";
 import { CategoryIcon } from "./CategoryIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Repeat } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -19,6 +20,13 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const SOURCES = ["Salary", "Allowance", "Transfer", "Gift", "Bonus", "Other"];
+
+const FREQUENCIES: { value: Frequency; label: string }[] = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "custom", label: "Custom" },
+];
 
 const schema = z.object({
   amount: z.number().positive("Amount must be greater than 0").max(1_000_000_000),
@@ -50,6 +58,11 @@ export const AddTransactionSheet = ({ open, onOpenChange, type, transaction }: P
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Recurring fields (only when creating, not editing existing transactions)
+  const [recurring, setRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<Frequency>("monthly");
+  const [intervalDays, setIntervalDays] = useState("30");
+
   // Pre-fill form when opening for edit, reset when opening fresh
   useEffect(() => {
     if (!open) return;
@@ -59,12 +72,16 @@ export const AddTransactionSheet = ({ open, onOpenChange, type, transaction }: P
       setNote(transaction.note ?? "");
       setCategoryId(transaction.category_id);
       setSource(transaction.source ?? "Salary");
+      setRecurring(false);
     } else {
       setAmount("");
       setNote("");
       setCategoryId(null);
       setSource("Salary");
       setDate(new Date().toISOString().slice(0, 10));
+      setRecurring(false);
+      setFrequency("monthly");
+      setIntervalDays("30");
     }
   }, [open, transaction]);
 
@@ -93,9 +110,37 @@ export const AddTransactionSheet = ({ open, onOpenChange, type, transaction }: P
     const { error } = isEdit
       ? await supabase.from("transactions").update(payload).eq("id", transaction!.id)
       : await supabase.from("transactions").insert({ ...payload, user_id: user.id });
-    setSaving(false);
 
-    if (error) { toast.error(error.message); return; }
+    if (error) { setSaving(false); toast.error(error.message); return; }
+
+    // If creating + recurring is on, also create the recurring schedule.
+    if (!isEdit && recurring) {
+      const interval = frequency === "custom" ? Math.max(1, parseInt(intervalDays, 10) || 1) : null;
+      const name =
+        parsed.data.note ??
+        (type === "income" ? source : categories.find((c) => c.id === categoryId)?.name ?? "Recurring");
+      const { error: rerr } = await supabase.from("recurring_transactions").insert({
+        user_id: user.id,
+        name,
+        type,
+        amount: parsed.data.amount,
+        category_id: type === "expense" ? categoryId : null,
+        source: type === "income" ? source : null,
+        note: parsed.data.note ?? null,
+        frequency,
+        interval_days: interval,
+        // First future occurrence based on the chosen date
+        next_date: parsed.data.date,
+      });
+      if (rerr) {
+        // Transaction succeeded but schedule failed — surface as warning, not blocking.
+        toast.error("Saved transaction, but recurring schedule failed: " + rerr.message);
+      } else {
+        qc.invalidateQueries({ queryKey: ["recurring"] });
+      }
+    }
+
+    setSaving(false);
     toast.success(
       isEdit ? "Transaction updated" : type === "income" ? "Money added" : "Expense recorded"
     );
@@ -220,6 +265,64 @@ export const AddTransactionSheet = ({ open, onOpenChange, type, transaction }: P
               <Label htmlFor="note" className="text-xs uppercase tracking-wider text-muted-foreground">Note (optional)</Label>
               <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Add a quick note…" rows={2} className="mt-2 resize-none" />
             </div>
+
+            {/* Recurring (only when creating) */}
+            {!isEdit && (
+              <div className="rounded-2xl border border-border/60 bg-gradient-card p-4 shadow-card">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Repeat className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-semibold">Make it recurring</p>
+                      <p className="text-xs text-muted-foreground">Get reminded to repeat this</p>
+                    </div>
+                  </div>
+                  <Switch checked={recurring} onCheckedChange={setRecurring} />
+                </div>
+
+                {recurring && (
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Frequency</Label>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {FREQUENCIES.map((f) => {
+                          const active = frequency === f.value;
+                          return (
+                            <button
+                              key={f.value}
+                              type="button"
+                              onClick={() => setFrequency(f.value)}
+                              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-smooth ${
+                                active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                              }`}
+                            >
+                              {f.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {frequency === "custom" && (
+                      <div>
+                        <Label htmlFor="interval" className="text-xs uppercase tracking-wider text-muted-foreground">
+                          Every N days
+                        </Label>
+                        <Input
+                          id="interval"
+                          type="number"
+                          min={1}
+                          max={365}
+                          step={1}
+                          value={intervalDays}
+                          onChange={(e) => setIntervalDays(e.target.value)}
+                          className="mt-2"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-2 pt-1">
               {isEdit && (
