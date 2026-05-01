@@ -1,24 +1,28 @@
 import { useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCategories, useTransactions, Transaction } from "@/hooks/useWalletData";
+import { useCategories, useTransactions, useRecurring, Transaction } from "@/hooks/useWalletData";
 import { AppShell } from "@/components/AppShell";
 import { BalanceCard } from "@/components/BalanceCard";
 import { TransactionList } from "@/components/TransactionList";
 import { BudgetProgress } from "@/components/BudgetProgress";
 import { AddTransactionSheet } from "@/components/AddTransactionSheet";
+import { UpcomingRecurring } from "@/components/UpcomingRecurring";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, TrendingUp, Loader2 } from "lucide-react";
+import { Plus, Minus, TrendingUp, Loader2, ChevronRight } from "lucide-react";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useCycle } from "@/contexts/CycleContext";
+import { useDeleteTransactionWithUndo } from "@/hooks/useDeleteTransactionWithUndo";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const { data: categories = [], isLoading: cl } = useCategories();
   const { data: transactions = [], isLoading: tl } = useTransactions();
+  const { data: recurring = [] } = useRecurring();
   const { format: formatCurrency } = useCurrency();
   const { isInCurrentCycle, formatRange } = useCycle();
+  const deleteTx = useDeleteTransactionWithUndo();
 
   const [sheet, setSheet] = useState<"income" | "expense" | null>(null);
   const [editing, setEditing] = useState<Transaction | null>(null);
@@ -42,6 +46,10 @@ const Dashboard = () => {
     const topCat = topCatId ? categories.find((c) => c.id === topCatId) : null;
     return { balance: totalIncome - totalExpenses, income, expenses, topCat, topAmt };
   }, [transactions, categories, isInCurrentCycle]);
+
+  const hasUpcoming = useMemo(() => {
+    return recurring.some((r) => r.active);
+  }, [recurring]);
 
   if (loading || cl || tl) {
     return (
@@ -108,6 +116,18 @@ const Dashboard = () => {
         </section>
       )}
 
+      {hasUpcoming && (
+        <section className="mt-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-muted-foreground">Upcoming</h2>
+            <Link to="/recurring" className="flex items-center gap-0.5 text-xs font-medium text-primary">
+              Manage <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <UpcomingRecurring categories={categories} limit={5} />
+        </section>
+      )}
+
       <section className="mt-6">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Budgets</h2>
         <BudgetProgress categories={categories} transactions={transactions} />
@@ -115,10 +135,12 @@ const Dashboard = () => {
 
       <section className="mt-6">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Recent activity</h2>
+        <p className="mb-2 text-[11px] text-muted-foreground">Tap to edit · swipe right to edit · swipe left to delete</p>
         <TransactionList
           transactions={transactions.slice(0, 8)}
           categories={categories}
           onSelect={setEditing}
+          onDelete={(t) => deleteTx({ ...t, user_id: user.id })}
           empty={<p className="text-sm text-muted-foreground">Nothing yet — add your first transaction above.</p>}
         />
       </section>
