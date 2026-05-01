@@ -10,6 +10,7 @@ import Auth from "./pages/Auth.tsx";
 import History from "./pages/History.tsx";
 import Budgets from "./pages/Budgets.tsx";
 import Settings from "./pages/Settings.tsx";
+import Recurrings from "./pages/Recurrings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/history" element={<History />} />
               <Route path="/budgets" element={<Budgets />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/recurring" element={<Recurrings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             </CycleProvider>

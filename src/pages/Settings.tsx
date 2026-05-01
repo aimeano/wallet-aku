@@ -1,9 +1,9 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/AppShell";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/contexts/CurrencyContext";
 import { useCycle } from "@/contexts/CycleContext";
-import { Check, Loader2 } from "lucide-react";
+import { Check, ChevronRight, Loader2, Repeat } from "lucide-react";
 import { toast } from "sonner";
 
 const PRESETS = [
